@@ -88,9 +88,20 @@ try:
     # Extraction des coordonnées GPS de l'image grâce à piexif
     exif_dict = piexif.load(image_path)
     gps = exif_dict["GPS"]
+
+    # On récupère en détail les degrés, minutes et secondes de la latitude et la longitude
+    lat_d = gps[piexif.GPSIFD.GPSLatitude][0][0] / gps[piexif.GPSIFD.GPSLatitude][0][1]
+    lat_m = gps[piexif.GPSIFD.GPSLatitude][1][0] / gps[piexif.GPSIFD.GPSLatitude][1][1]
+    lat_s = gps[piexif.GPSIFD.GPSLatitude][2][0] / gps[piexif.GPSIFD.GPSLatitude][2][1]
     
-    lat = gps[piexif.GPSIFD.GPSLatitude][0][0] / gps[piexif.GPSIFD.GPSLatitude][0][1]
-    lon = gps[piexif.GPSIFD.GPSLongitude][0][0] / gps[piexif.GPSIFD.GPSLongitude][0][1]
+    lon_d = gps[piexif.GPSIFD.GPSLongitude][0][0] / gps[piexif.GPSIFD.GPSLongitude][0][1]
+    lon_m = gps[piexif.GPSIFD.GPSLongitude][1][0] / gps[piexif.GPSIFD.GPSLongitude][1][1]
+    lon_s = gps[piexif.GPSIFD.GPSLongitude][2][0] / gps[piexif.GPSIFD.GPSLongitude][2][1]
+
+    # Conversion en degrés décimaux précis
+    lat = lat_d + (lat_m / 60.0) + (lat_s / 3600.0)
+    lon = lon_d + (lon_m / 60.0) + (lon_s / 3600.0)
+
     
     if gps[piexif.GPSIFD.GPSLatitudeRef] == b'S': lat = -lat
     if gps[piexif.GPSIFD.GPSLongitudeRef] == b'W': lon = -lon
