@@ -6,7 +6,7 @@ import streamlit as st
 st.title("Streamlit : Édition de métadonnées EXIF")
 
 # Chargement de l'image
-image_path = "mnemosyne.png"
+image_path = "Streamlit/mnemosyne.png"
 
 try:
     # Ouverture de l'image avec Pillow
