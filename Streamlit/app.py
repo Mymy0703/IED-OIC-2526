@@ -22,7 +22,7 @@ from geopy.geocoders import Nominatim
 st.title("Streamlit : Édition de métadonnées EXIF")
 
 # Chemin d'accès de l'image
-image_path = "mnemosyne.jpeg"
+image_path = "Streamlit/mnemosyne.jpeg"
 
 try:
     # Ouverture de l'image avec Pillow
