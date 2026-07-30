@@ -22,7 +22,7 @@ from geopy.geocoders import Nominatim
 st.title("Streamlit : Édition de métadonnées EXIF")
 
 # Chemin d'accès de l'image
-image_path = "Streamlit/mnemosyne.jpeg"
+image_path = "mnemosyne.jpeg"
 
 try:
     # Ouverture de l'image avec Pillow
@@ -88,8 +88,8 @@ try:
     # Extraction des coordonnées GPS de l'image grâce à piexif
     exif_dict = piexif.load(image_path)
     gps = exif_dict["GPS"]
-
-    # On récupère en détail les degrés, minutes et secondes de la latitude et la longitude
+    
+    # On récupère les degrés, minutes et secondes pour la latitude et la longitude
     lat_d = gps[piexif.GPSIFD.GPSLatitude][0][0] / gps[piexif.GPSIFD.GPSLatitude][0][1]
     lat_m = gps[piexif.GPSIFD.GPSLatitude][1][0] / gps[piexif.GPSIFD.GPSLatitude][1][1]
     lat_s = gps[piexif.GPSIFD.GPSLatitude][2][0] / gps[piexif.GPSIFD.GPSLatitude][2][1]
@@ -102,7 +102,6 @@ try:
     lat = lat_d + (lat_m / 60.0) + (lat_s / 3600.0)
     lon = lon_d + (lon_m / 60.0) + (lon_s / 3600.0)
 
-    
     if gps[piexif.GPSIFD.GPSLatitudeRef] == b'S': lat = -lat
     if gps[piexif.GPSIFD.GPSLongitudeRef] == b'W': lon = -lon
 
@@ -122,3 +121,61 @@ try:
 except Exception as e:
     # Gestion d'erreurs
     st.error(f"Erreur ou données GPS introuvables : {e}")
+
+
+
+import pandas as pd
+import pydeck as pdk
+
+st.title("Mes voyages et destinations de rêve")
+
+# Définition des points (POIs) avec leurs coordonnées et couleurs (Vert pour visité, Orange pour rêve)
+data_points = [
+    {"lieu": "Pays-Bas", "lat": 52.3676, "lon": 4.9041, "couleur": [0, 200, 0]},      # Vert
+    {"lieu": "Maroc (Marrakech)", "lat": 31.6295, "lon": -7.9811, "couleur": [0, 200, 0]}, # Vert
+    {"lieu": "Tunisie (Djerba)", "lat": 33.8076, "lon": 10.8451, "couleur": [0, 200, 0]}, # Vert
+    {"lieu": "Malaisie", "lat": 3.1390, "lon": 101.6869, "couleur": [255, 165, 0]},      # Orange
+    {"lieu": "Chine", "lat": 39.9042, "lon": 116.4074, "couleur": [255, 165, 0]},         # Orange
+    {"lieu": "Corée du Sud", "lat": 37.5665, "lon": 126.9780, "couleur": [255, 165, 0]}   # Orange
+]
+df_points = pd.DataFrame(data_points)
+
+# Définition des liaisons d'un point vers le suivant
+data_lines = [
+    {"from_lon": 4.9041, "from_lat": 52.3676, "to_lon": -7.9811, "to_lat": 31.6295},
+    {"from_lon": -7.9811, "from_lat": 31.6295, "to_lon": 10.8451, "to_lat": 33.8076},
+    {"from_lon": 10.8451, "from_lat": 33.8076, "to_lon": 101.6869, "to_lat": 3.1390},
+    {"from_lon": 101.6869, "from_lat": 3.1390, "to_lon": 116.4074, "to_lat": 39.9042},
+    {"from_lon": 116.4074, "from_lat": 39.9042, "to_lon": 126.9780, "to_lat": 37.5665}
+]
+df_lines = pd.DataFrame(data_lines)
+
+# Configuration de la vue globale de la carte
+view_state = pdk.ViewState(latitude=30.0, longitude=30.0, zoom=1, pitch=0)
+
+# Couche pour tracer les lignes entre les points
+layer_lines = pdk.Layer(
+    "LineLayer",
+    df_lines,
+    get_source_position="[from_lon, from_lat]",
+    get_target_position="[to_lon, to_lat]",
+    get_color=[150, 150, 150, 180], # Lignes grises semi-transparentes
+    get_width=3,
+)
+
+# Couche pour afficher les POIs colorés
+layer_points = pdk.Layer(
+    "ScatterplotLayer",
+    df_points,
+    get_position="[lon, lat]",
+    get_color="couleur",
+    get_radius=300000,
+    pickable=True,
+)
+
+# Affichage de la carte interactive finale
+st.pydeck_chart(pdk.Deck(
+    layers=[layer_lines, layer_points], 
+    initial_view_state=view_state, 
+    tooltip={"text": "{lieu}"}
+))
